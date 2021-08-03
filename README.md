@@ -17,3 +17,9 @@ yarn start
 # 调试程序
 yarn start #并且使用 vscode 调试功能 
 ```
+
+## 分支
+
+- `main` 分支：原生实现
+- `feat/react` 分支：react 版实现
+- `feat/react-optimize` 分支：react 版实现，优化成好用的 hooks
