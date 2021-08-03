@@ -61,7 +61,7 @@ function renderContainer() {
    * 落到 container 上
    * @param ev 
    */
-  function onBlankDrop(ev) {
+  const onBlankDrop = (ev) => {
     ev.preventDefault();
     clearHightLight(oldHightLightData);
     const channelCopyStr = ev.dataTransfer.getData(CONST.CHANNEL.COPY);
@@ -80,7 +80,7 @@ function renderContainer() {
     }
   }
 
-  function highLightRoot() {
+  const highLightRoot = () => {
     const id = dataTree[dataTree.length - 1].id;
     const $dom = document.getElementById(id);
     if ($dom) {
@@ -105,7 +105,7 @@ function renderContainer() {
    * 控件添加到 根
    * @param block 
    */
-  function insertToRoot(block: IBlock, type: TInsertToRoot = 'next') {
+  const insertToRoot = (block: IBlock, type: TInsertToRoot = 'next') => {
     if (type === 'next') {
       setDataTree([...dataTree, block]);
     } else {
@@ -119,17 +119,20 @@ function renderContainer() {
    * @param id 
    * @returns 
    */
-  function deleteByID(arr: IBlock[], id: string) {
-    for (let x = arr.length - 1; x >= 0; x--) {
-      const block = arr[x];
-      if (id === block.id) {
-        arr.splice(x, 1);
-        return;
-      }
-      if (block.children) {
-        deleteByID(block.children, id);
+  const deleteByID = (blocks: IBlock[], id: string) => {
+    const _deleteByID = (arr: IBlock[], id: string) => {
+      for (let x = arr.length - 1; x >= 0; x--) {
+        const block = arr[x];
+        if (id === block.id) {
+          arr.splice(x, 1);
+          return;
+        }
+        if (block.children) {
+          _deleteByID(block.children, id);
+        }
       }
     }
+    _deleteByID(blocks, id);
     setDataTree(cloneDeep(dataTree))
   }
 
@@ -165,7 +168,7 @@ function RenderTree(props: IRenderTreeProps) {
    * 落到树上
    * @param ev 
    */
-  function onTreeDragOver(ev) {
+  const onTreeDragOver = (ev) => {
     highLight(ev);
     ev.preventDefault();
     ev.stopPropagation();
@@ -175,7 +178,7 @@ function RenderTree(props: IRenderTreeProps) {
    * 从树中开始拖拽
    * @param ev 
    */
-  function onTreeDragStart(ev) {
+  const onTreeDragStart = (ev) => {
     ev.dataTransfer.setData(CONST.CHANNEL.MOVE, ev.target.id);
   }
 
@@ -184,8 +187,7 @@ function RenderTree(props: IRenderTreeProps) {
    * 
    * @param ev 
    */
-  function highLight(ev) {
-
+  const highLight = (ev) => {
     const [, type, $wrap] = findTargetDropDom(ev);
     let $dom = $wrap;
     if (type === 'before' || type == 'next') {
@@ -221,7 +223,7 @@ function RenderTree(props: IRenderTreeProps) {
    * @param block 
    * @param type 
    */
-  function insertToBlock(target: IBlock, block: IBlock, type: TInsertToBlockType = 'next') {
+  const insertToBlock = (target: IBlock, block: IBlock, type: TInsertToBlockType = 'next') => {
     if (!target) throw 'target is required; fn insertToBlock';
     if (!block) throw 'block is required; fn insertToBlock';
     if (type === 'next') {
@@ -244,7 +246,7 @@ function RenderTree(props: IRenderTreeProps) {
    * 落到树上
    * @param ev 
    */
-  function onTreeDrop(ev) {
+  const onTreeDrop = (ev) => {
     ev.preventDefault();
     ev.stopPropagation();
     clearHightLight(oldHightLightData);
@@ -281,6 +283,7 @@ function RenderTree(props: IRenderTreeProps) {
       </div>
     )
   }
+
   return (
     <Fragment>
       {dataTree.map((i, index) => _genblock(i, index === dataTree.length - 1))}

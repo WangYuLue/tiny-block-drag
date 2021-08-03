@@ -58,7 +58,6 @@ function getByID(dataTree: IBlock[], id: string): IBlock | undefined {
  * @returns [对应控件的ID，放入的类型， 目标Dom]
  */
 function findTargetDropDom(ev): [string, TInsertToBlockType, HTMLElement] {
-
   const getPath = (targetDom: HTMLElement): HTMLElement[] => {
     const res: HTMLElement[] = [];
     const _getPath = (targetDom: HTMLElement) => {
@@ -108,7 +107,6 @@ function clearHightLight(oldHightLightData: IOldHightLightData) {
     oldHightLightData.$dom.style.marginBottom = '';
   }
 }
-
 
 export {
   link,
