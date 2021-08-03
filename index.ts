@@ -1,3 +1,5 @@
+/// <reference path="index.d.ts"/>
+
 import './index.scss';
 import { v4 as uuidv4 } from 'uuid';
 
