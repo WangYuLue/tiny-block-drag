@@ -90,6 +90,8 @@ const oldHightLightData: {
   type?: TInsertToBlockType
 } = {}
 
+let currentDraggingId: string = null;
+
 /**
  * 循环1000次，测试性能
  */
@@ -142,21 +144,26 @@ function onBlankDragOver(ev) {
  */
 function onBlankDrop(ev) {
   ev.preventDefault();
-  const channelCopyStr = ev.dataTransfer.getData(CONST.CHANNEL.COPY);
-  const channelMoveStr = ev.dataTransfer.getData(CONST.CHANNEL.MOVE);
+  try {
+    const channelCopyStr = ev.dataTransfer.getData(CONST.CHANNEL.COPY);
+    const channelMoveStr = ev.dataTransfer.getData(CONST.CHANNEL.MOVE);
 
-  if (channelCopyStr) {
-    const blockMata: IBlockMata = JSON.parse(channelCopyStr);
-    insertToRoot(makeBlock(blockMata));
-  } else if (channelMoveStr) {
-    const blockId = channelMoveStr;
-    const targetBlock = getByID(blockId);
-    // 删除原来的控件
-    deleteByID(dataTree, blockId);
-    // 将控件移动到树的尾部
-    insertToRoot(targetBlock);
+    if (channelCopyStr) {
+      const blockMata: IBlockMata = JSON.parse(channelCopyStr);
+      insertToRoot(makeBlock(blockMata));
+    } else if (channelMoveStr) {
+      const blockId = channelMoveStr;
+      const targetBlock = getByID(blockId);
+      // 删除原来的控件
+      deleteByID(dataTree, blockId);
+      // 将控件移动到树的尾部
+      insertToRoot(targetBlock);
+    }
+    render();
+  } finally {
+    clearHightLight();
+    currentDraggingId = null;
   }
-  render();
 }
 
 /**
@@ -174,6 +181,7 @@ function onTreeDragOver(ev) {
  * @param ev 
  */
 function onTreeDragStart(ev) {
+  currentDraggingId = ev.target.id;
   ev.dataTransfer.setData(CONST.CHANNEL.MOVE, ev.target.id);
 }
 
@@ -205,7 +213,6 @@ function highLightRoot() {
  * @param ev 
  */
 function highLight(ev) {
-
   const [, type, $wrap] = findTargetDropDom(ev);
 
   let $dom = $wrap;
@@ -254,24 +261,30 @@ function clearHightLight() {
  * @param ev 
  */
 function onTreeDrop(ev) {
-  ev.preventDefault();
-  ev.stopPropagation();
-  const channelCopyStr = ev.dataTransfer.getData(CONST.CHANNEL.COPY);
-  const channelMoveStr = ev.dataTransfer.getData(CONST.CHANNEL.MOVE);
-  const [id, type] = findTargetDropDom(ev);
-  if (channelCopyStr) {
-    const blockMata: IBlockMata = JSON.parse(channelCopyStr);
-    insertToBlock(getByID(id), makeBlock(blockMata), type)
-  } else if (channelMoveStr) {
-    const blockId = channelMoveStr;
-    // 如果目标 ID 和 要移动的 ID 相同，则表示无需移动
-    if (blockId !== id) {
-      const _block = getByID(blockId);
-      deleteByID(dataTree, blockId);
-      insertToBlock(getByID(id), _block, type)
+  try {
+    ev.preventDefault();
+    ev.stopPropagation();
+    const channelCopyStr = ev.dataTransfer.getData(CONST.CHANNEL.COPY);
+    const channelMoveStr = ev.dataTransfer.getData(CONST.CHANNEL.MOVE);
+    const [id, type] = findTargetDropDom(ev);
+
+    if (channelCopyStr) {
+      const blockMata: IBlockMata = JSON.parse(channelCopyStr);
+      insertToBlock(getByID(id), makeBlock(blockMata), type)
+    } else if (channelMoveStr) {
+      const blockId = channelMoveStr;
+      // 如果目标 ID 和 要移动的 ID 相同，则表示无需移动
+      if (blockId !== id) {
+        const _block = getByID(blockId);
+        deleteByID(dataTree, blockId);
+        insertToBlock(getByID(id), _block, type)
+      }
     }
+    render();
+  } finally {
+    clearHightLight();
+    currentDraggingId = null;
   }
-  render();
 }
 
 /**
@@ -281,7 +294,14 @@ function onTreeDrop(ev) {
  * @returns [对应控件的ID，放入的类型， 目标Dom]
  */
 function findTargetDropDom(ev): [string, TInsertToBlockType, HTMLElement] {
-  const path: HTMLElement[] = ev.path;
+  let path: HTMLElement[] = ev.path;
+  // 下面逻辑用于处理 当前block 落在自己 子block 的情况 
+  // === start ===
+  const $dragDom = document.getElementById(currentDraggingId);
+  const index = path.findIndex(i => i === $dragDom) + 1;
+  path = path.slice(index);
+  // === end ===
+
   let type: TInsertToBlockType;
   for (let x = 0; x < path.length; x++) {
     if (path[x].classList !== undefined) {
