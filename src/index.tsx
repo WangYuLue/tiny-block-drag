@@ -42,7 +42,9 @@ function renderContainer() {
   /**
   * 高亮 dom 数据集
   */
-  const [oldHightLightData, setOldHightLightData] = useState<IOldHightLightData>({})
+  const [oldHightLightData, setOldHightLightData] = useState<IOldHightLightData>({});
+
+  const [currentDraggingId, setCurrentDraggingId] = useState<string>(null);
 
   useEffect(() => {
     link(dataTree);
@@ -62,21 +64,25 @@ function renderContainer() {
    * @param ev 
    */
   const onBlankDrop = (ev) => {
-    ev.preventDefault();
-    clearHightLight(oldHightLightData);
-    const channelCopyStr = ev.dataTransfer.getData(CONST.CHANNEL.COPY);
-    const channelMoveStr = ev.dataTransfer.getData(CONST.CHANNEL.MOVE);
+    try {
+      ev.preventDefault();
+      const channelCopyStr = ev.dataTransfer.getData(CONST.CHANNEL.COPY);
+      const channelMoveStr = ev.dataTransfer.getData(CONST.CHANNEL.MOVE);
 
-    if (channelCopyStr) {
-      const blockMata: IBlockMata = JSON.parse(channelCopyStr);
-      insertToRoot(makeBlock(blockMata));
-    } else if (channelMoveStr) {
-      const blockId = channelMoveStr;
-      const targetBlock = getByID(dataTree, blockId);
-      // 删除原来的控件
-      deleteByID(dataTree, blockId);
-      // 将控件移动到树的尾部
-      insertToRoot(targetBlock);
+      if (channelCopyStr) {
+        const blockMata: IBlockMata = JSON.parse(channelCopyStr);
+        insertToRoot(makeBlock(blockMata));
+      } else if (channelMoveStr) {
+        const blockId = channelMoveStr;
+        const targetBlock = getByID(dataTree, blockId);
+        // 删除原来的控件
+        deleteByID(dataTree, blockId);
+        // 将控件移动到树的尾部
+        insertToRoot(targetBlock);
+      }
+    } finally {
+      setCurrentDraggingId(null)
+      clearHightLight(oldHightLightData);
     }
   }
 
@@ -144,6 +150,8 @@ function renderContainer() {
         oldHightLightData={oldHightLightData}
         setOldHightLightData={setOldHightLightData}
         deleteByID={deleteByID}
+        currentDraggingId={currentDraggingId}
+        setCurrentDraggingId={setCurrentDraggingId}
       />
     </div>
   )
@@ -159,7 +167,9 @@ function RenderTree(props: IRenderTreeProps) {
     setDataTree,
     oldHightLightData,
     setOldHightLightData,
-    deleteByID
+    deleteByID,
+    currentDraggingId,
+    setCurrentDraggingId
   } = props;
 
   link(dataTree);
@@ -179,6 +189,7 @@ function RenderTree(props: IRenderTreeProps) {
    * @param ev 
    */
   const onTreeDragStart = (ev) => {
+    setCurrentDraggingId(ev.target.id)
     ev.dataTransfer.setData(CONST.CHANNEL.MOVE, ev.target.id);
   }
 
@@ -188,7 +199,7 @@ function RenderTree(props: IRenderTreeProps) {
    * @param ev 
    */
   const highLight = (ev) => {
-    const [, type, $wrap] = findTargetDropDom(ev);
+    const [, type, $wrap] = findTargetDropDom(ev, currentDraggingId);
     let $dom = $wrap;
     if (type === 'before' || type == 'next') {
       $dom = $wrap.children[0] as HTMLElement;
@@ -247,23 +258,27 @@ function RenderTree(props: IRenderTreeProps) {
    * @param ev 
    */
   const onTreeDrop = (ev) => {
-    ev.preventDefault();
-    ev.stopPropagation();
-    clearHightLight(oldHightLightData);
-    const channelCopyStr = ev.dataTransfer.getData(CONST.CHANNEL.COPY);
-    const channelMoveStr = ev.dataTransfer.getData(CONST.CHANNEL.MOVE);
-    const [id, type] = findTargetDropDom(ev);
-    if (channelCopyStr) {
-      const blockMata: IBlockMata = JSON.parse(channelCopyStr);
-      insertToBlock(getByID(dataTree, id), makeBlock(blockMata), type)
-    } else if (channelMoveStr) {
-      const blockId = channelMoveStr;
-      // 如果目标 ID 和 要移动的 ID 相同，则表示无需移动
-      if (blockId !== id) {
-        const _block = getByID(dataTree, blockId);
-        deleteByID(dataTree, blockId);
-        insertToBlock(getByID(dataTree, id), _block, type)
+    try {
+      ev.preventDefault();
+      ev.stopPropagation();
+      const channelCopyStr = ev.dataTransfer.getData(CONST.CHANNEL.COPY);
+      const channelMoveStr = ev.dataTransfer.getData(CONST.CHANNEL.MOVE);
+      const [id, type] = findTargetDropDom(ev, currentDraggingId);
+      if (channelCopyStr) {
+        const blockMata: IBlockMata = JSON.parse(channelCopyStr);
+        insertToBlock(getByID(dataTree, id), makeBlock(blockMata), type)
+      } else if (channelMoveStr) {
+        const blockId = channelMoveStr;
+        // 如果目标 ID 和 要移动的 ID 相同，则表示无需移动
+        if (blockId !== id) {
+          const _block = getByID(dataTree, blockId);
+          deleteByID(dataTree, blockId);
+          insertToBlock(getByID(dataTree, id), _block, type)
+        }
       }
+    } finally {
+      setCurrentDraggingId(null)
+      clearHightLight(oldHightLightData);
     }
   }
 

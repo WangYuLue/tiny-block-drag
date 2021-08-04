@@ -57,7 +57,7 @@ function getByID(dataTree: IBlock[], id: string): IBlock | undefined {
  * @param ev 
  * @returns [对应控件的ID，放入的类型， 目标Dom]
  */
-function findTargetDropDom(ev): [string, TInsertToBlockType, HTMLElement] {
+function findTargetDropDom(ev, currentDraggingId: string): [string, TInsertToBlockType, HTMLElement] {
   const getPath = (targetDom: HTMLElement): HTMLElement[] => {
     const res: HTMLElement[] = [];
     const _getPath = (targetDom: HTMLElement) => {
@@ -70,7 +70,14 @@ function findTargetDropDom(ev): [string, TInsertToBlockType, HTMLElement] {
     return res;
   }
 
-  const path: HTMLElement[] = getPath(ev.target);
+  let path: HTMLElement[] = getPath(ev.target);
+  // 下面逻辑用于处理 当前block 落在自己 子block 的情况 
+  // === start ===
+  const $dragDom = document.getElementById(currentDraggingId);
+  const index = path.findIndex(i => i === $dragDom) + 1;
+  path = path.slice(index);
+  // === end ===
+
   let type: TInsertToBlockType;
   for (let x = 0; x < path.length; x++) {
     if (path[x].classList !== undefined) {

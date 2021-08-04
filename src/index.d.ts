@@ -26,4 +26,6 @@ interface IRenderTreeProps {
   oldHightLightData: IOldHightLightData;
   setOldHightLightData: (data: IOldHightLightData) => void;
   deleteByID: (arr: IBlock[], id: string) => void;
+  currentDraggingId: string;
+  setCurrentDraggingId: (id: string) => void;
 }
