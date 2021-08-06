@@ -12,6 +12,15 @@ import './index.scss';
 const { useEffect, useState, Fragment } = React;
 
 /**
+* 高亮 dom 数据集
+*/
+let oldHightLightData: IOldHightLightData = {};
+const setOldHightLightData = (data: IOldHightLightData) => { oldHightLightData = data }
+
+let currentDraggingId: string = null;
+const setCurrentDraggingId = (id: string) => { currentDraggingId = id }
+
+/**
  * 从列表中开始拖拽
  * @param ev 
  */
@@ -38,13 +47,6 @@ function renderContainer() {
    * 树数据
    */
   const [dataTree, setDataTree] = useState<IBlock[]>(MockDataTree);
-
-  /**
-  * 高亮 dom 数据集
-  */
-  const [oldHightLightData, setOldHightLightData] = useState<IOldHightLightData>({});
-
-  const [currentDraggingId, setCurrentDraggingId] = useState<string>(null);
 
   useEffect(() => {
     link(dataTree);
@@ -147,11 +149,7 @@ function renderContainer() {
       <RenderTree
         dataTree={dataTree}
         setDataTree={setDataTree}
-        oldHightLightData={oldHightLightData}
-        setOldHightLightData={setOldHightLightData}
         deleteByID={deleteByID}
-        currentDraggingId={currentDraggingId}
-        setCurrentDraggingId={setCurrentDraggingId}
       />
     </div>
   )
@@ -165,11 +163,7 @@ function RenderTree(props: IRenderTreeProps) {
   const {
     dataTree,
     setDataTree,
-    oldHightLightData,
-    setOldHightLightData,
-    deleteByID,
-    currentDraggingId,
-    setCurrentDraggingId
+    deleteByID
   } = props;
 
   link(dataTree);
@@ -191,6 +185,7 @@ function RenderTree(props: IRenderTreeProps) {
   const onTreeDragStart = (ev) => {
     setCurrentDraggingId(ev.target.id)
     ev.dataTransfer.setData(CONST.CHANNEL.MOVE, ev.target.id);
+    ev.stopPropagation();
   }
 
   /**
