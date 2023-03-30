@@ -1,7 +1,7 @@
-interface IBlockMata {
+interface IBlockMeta {
   id: string;
   name: string;
-  type: 'simple' | 'frame';
+  type: "simple" | "frame";
 }
 
 interface IBlock {
@@ -11,6 +11,6 @@ interface IBlock {
   parent?: IBlock;
 }
 
-type TInsertToRoot = 'before' | 'next';
+type TInsertToRoot = "before" | "next";
 
-type TInsertToBlockType = 'before' | 'next' | 'inner';
+type TInsertToBlockType = "before" | "next" | "inner";
