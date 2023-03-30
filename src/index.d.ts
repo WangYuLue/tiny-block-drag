@@ -1,7 +1,7 @@
-interface IBlockMata {
+interface IBlockMeta {
   id: string;
   name: string;
-  type: 'simple' | 'frame';
+  type: "simple" | "frame";
 }
 
 interface IBlock {
@@ -12,13 +12,13 @@ interface IBlock {
 }
 
 interface IOldHightLightData {
-  $dom?: HTMLElement,
-  type?: TInsertToBlockType
+  $dom?: HTMLElement;
+  type?: TInsertToBlockType;
 }
 
-type TInsertToRoot = 'before' | 'next';
+type TInsertToRoot = "before" | "next";
 
-type TInsertToBlockType = 'before' | 'next' | 'inner';
+type TInsertToBlockType = "before" | "next" | "inner";
 
 interface IRenderTreeProps {
   dataTree: IBlock[];
